@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vela — Learn. Make. Sell.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="nav">
+  <div class="nav-inner">
+    <div class="logo"><div class="logo-mark">V</div>Vela</div>
+    <div class="nav-links" id="navLinks"></div>
+    <div style="display:flex;align-items:center;">
+      <div class="lang-toggle" id="langToggle">EN / RW</div>
+      <button class="btn btn-navy" onclick="go('auth')">Log in</button>
+    </div>
+  </div>
+</div>
+
+<!-- HOME -->
+<div class="view active" id="view-home">
+  <div class="hero">
+    <div class="wrap">
+      <div class="eyebrow">Craft skills · Kigali, Rwanda</div>
+      <h1>Learn a craft.<br>Open a shop.<br><span>Earn on your own terms.</span></h1>
+      <p class="lead">Vela teaches out-of-school girls tailoring, beading and basket weaving in Kinyarwanda and English — then unlocks their own digital shop the moment they graduate, with MTN MoMo and Airtel Money built in.</p>
+      <div class="hero-cta">
+        <button class="btn btn-primary" onclick="go('courses')">Browse courses</button>
+        <button class="btn btn-outline" onclick="go('marketplace')">Shop the marketplace</button>
+      </div>
+      <div class="stat-row">
+        <div class="stat-card"><div class="stat-num">50</div><div class="stat-label">girls to be trained by 2030</div></div>
+        <div class="stat-card"><div class="stat-num">70%</div><div class="stat-label">graduate earning-income target</div></div>
+        <div class="stat-card"><div class="stat-num">3</div><div class="stat-label">craft tracks at launch</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="tag">How it works</div>
+        <h2>From first lesson to first sale</h2>
+        <p>One continuous path — no separate app, no extra sign-up for the shop.</p>
+      </div>
+      <div class="steps">
+        <div class="step-card"><div class="step-num">1</div><h4>Learn</h4><p>Watch short video lessons offline, in Kinyarwanda or English.</p></div>
+        <div class="step-card"><div class="step-num">2</div><h4>Get assessed</h4><p>Pass end-of-module quizzes with instant feedback.</p></div>
+        <div class="step-card"><div class="step-num">3</div><h4>Graduate</h4><p>Earn a certificate and unlock your shop automatically.</p></div>
+        <div class="step-card"><div class="step-num">4</div><h4>Sell</h4><p>List products and get paid by MoMo or Airtel Money.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" style="padding-top:0;">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="tag">Craft tracks</div>
+        <h2>Three skills, three income paths</h2>
+      </div>
+      <div class="grid-3" id="homeCourses"></div>
+    </div>
+  </div>
+</div>
+
+<!-- AUTH -->
+<div class="view" id="view-auth">
+  <div class="wrap" style="padding-top:20px;">
+    <div class="panel">
+      <h3 style="font-size:22px;margin-bottom:6px;">Welcome to Vela</h3>
+      <p style="margin-bottom:20px;">Register or log in to start learning, buying or managing the platform.</p>
+      <div class="role-toggle" id="roleToggle"></div>
+      <div class="field"><label>Full name</label><input type="text" placeholder="Uwase Liliane"></div>
+      <div class="field"><label>Phone number or email</label><input type="text" placeholder="+250 78 000 0000"></div>
+      <div class="field"><label>Password</label><input type="password" placeholder="••••••••"></div>
+      <div class="field"><label>Preferred language</label>
+        <select><option>English</option><option>Kinyarwanda</option></select>
+      </div>
+      <button class="btn btn-primary" style="width:100%;padding:13px;" onclick="loginAs()">Create account</button>
+      <p style="text-align:center;margin-top:14px;font-size:13px;">Already have an account? <a href="#" style="color:var(--blue);font-weight:600;" onclick="loginAs();return false;">Log in</a></p>
+    </div>
+  </div>
+</div>
+
+<!-- COURSES -->
+<div class="view" id="view-courses">
+  <div class="wrap" style="padding-top:20px;">
+    <div class="section-head">
+      <div class="tag">Course catalogue</div>
+      <h2>Pick a craft to learn</h2>
+      <p>You can only be enrolled in one course at a time — finish it, graduate, then start the next.</p>
+    </div>
+    <div class="grid-3" id="courseCatalog"></div>
+  </div>
+</div>
+
+<!-- COURSE DETAIL -->
+<div class="view" id="view-course-detail">
+  <div class="wrap" style="padding-top:20px;max-width:720px;">
+    <div id="courseDetailHeader"></div>
+    <div style="margin:22px 0;">
+      <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-bottom:8px;">
+        <span>Course progress</span><span id="progressPct">0%</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    </div>
+    <div id="lessonList"></div>
+    <div id="quizArea" style="display:none;margin-top:24px;">
+      <div class="panel" style="max-width:100%;">
+        <h4 style="margin-bottom:14px;">Module quiz — Finishing your first seam</h4>
+        <div class="quiz-opt" onclick="selectQuiz(this)">Sew slowly and check tension every few stitches</div>
+        <div class="quiz-opt" onclick="selectQuiz(this)">Sew as fast as possible to save thread</div>
+        <div class="quiz-opt" onclick="selectQuiz(this)">Skip the backstitch at the end</div>
+        <button class="btn btn-primary" style="margin-top:10px;" onclick="submitQuiz()">Submit answer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div class="view" id="view-dashboard">
+  <div class="wrap" style="padding-top:20px;">
+    <div class="dash-top">
+      <div>
+        <div class="tag" style="color:var(--mint-dark);font-weight:700;font-size:12px;">Your dashboard</div>
+        <h2 style="font-size:26px;">Karibu, Liliane</h2>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="panel" style="max-width:100%;">
+        <h4 style="margin-bottom:14px;">Tailoring — Level 1</h4>
+        <div class="progress-track"><div class="progress-fill" id="dashProgressFill" style="width:0%"></div></div>
+        <p style="margin-top:10px;font-size:13px;" id="dashProgressLabel">0 of 4 lessons complete</p>
+      </div>
+      <div class="panel" style="max-width:100%;" id="certPanel">
+        <h4 style="margin-bottom:8px;">Certificate</h4>
+        <p style="font-size:13px;">Complete all lessons and pass the quiz to graduate.</p>
+      </div>
+    </div>
+    <div class="lock-card" id="shopLockCard">
+      <h3 style="color:white;font-size:19px;">Shop is locked</h3>
+      <p style="color:#CBDCEC;margin-top:8px;">Finish your course to unlock your digital shop.</p>
+    </div>
+  </div>
+</div>
+
+<!-- SHOP CREATION -->
+<div class="view" id="view-shop-create">
+  <div class="wrap" style="padding-top:20px;">
+    <div class="panel">
+      <h3 style="font-size:22px;margin-bottom:6px;">Create your shop</h3>
+      <p style="margin-bottom:20px;">This is what buyers will see when they find your products.</p>
+      <div class="field"><label>Shop name</label><input type="text" id="shopName" placeholder="Liliane's Tailoring Corner"></div>
+      <div class="field"><label>What do you make?</label><textarea rows="3" id="shopDesc" placeholder="Custom dresses and school uniforms made to order"></textarea></div>
+      <div class="field"><label>Craft category</label>
+        <select id="shopCategory"><option>Tailoring</option><option>Beading</option><option>Basket weaving</option></select>
+      </div>
+      <div class="field"><label>Link mobile money</label>
+        <div style="display:flex;gap:8px;">
+          <select style="width:130px;"><option>MTN MoMo</option><option>Airtel Money</option></select>
+          <input type="text" placeholder="078 000 0000">
+        </div>
+      </div>
+      <button class="btn btn-primary" style="width:100%;padding:13px;" onclick="createShop()">Open my shop</button>
+    </div>
+  </div>
+</div>
+
+<!-- PRODUCT MANAGEMENT -->
+<div class="view" id="view-products">
+  <div class="wrap" style="padding-top:20px;">
+    <div class="dash-top">
+      <div>
+        <div class="tag">My shop</div>
+        <h2 style="font-size:24px;" id="myShopName">Your shop</h2>
+      </div>
+      <button class="btn btn-primary" onclick="toggleAddProduct()">+ Add product</button>
+    </div>
+    <div class="panel" id="addProductPanel" style="display:none;max-width:100%;margin-bottom:24px;">
+      <div class="grid-2">
+        <div class="field"><label>Product name</label><input type="text" id="pName" placeholder="Kitenge dress"></div>
+        <div class="field"><label>Price (RWF)</label><input type="number" id="pPrice" placeholder="15000"></div>
+      </div>
+      <div class="field"><label>Description</label><textarea rows="2" id="pDesc" placeholder="Hand-sewn, made to size"></textarea></div>
+      <button class="btn btn-navy" onclick="addProduct()">Save product</button>
+    </div>
+    <div class="grid-3" id="myProductGrid"></div>
+  </div>
+</div>
+
+<!-- MARKETPLACE -->
+<div class="view" id="view-marketplace">
+  <div class="wrap" style="padding-top:20px;">
+    <div class="section-head">
+      <div class="tag">Marketplace</div>
+      <h2>Shop handmade Rwandan craft</h2>
+    </div>
+    <div style="display:flex;gap:10px;margin-bottom:24px;flex-wrap:wrap;">
+      <button class="btn btn-outline" onclick="filterMarket('All')">All</button>
+      <button class="btn btn-outline" onclick="filterMarket('Tailoring')">Tailoring</button>
+      <button class="btn btn-outline" onclick="filterMarket('Beading')">Beading</button>
+      <button class="btn btn-outline" onclick="filterMarket('Basket weaving')">Basket weaving</button>
+    </div>
+    <div class="grid-3" id="marketGrid"></div>
+  </div>
+</div>
+
+<!-- CART -->
+<div class="view" id="view-cart">
+  <div class="wrap" style="padding-top:20px;max-width:520px;">
+    <h2 style="font-size:24px;margin-bottom:20px;">Your cart</h2>
+    <div class="panel" style="max-width:100%;">
+      <div id="cartItems"></div>
+      <div style="display:flex;justify-content:space-between;padding:16px 0;font-weight:700;color:var(--navy-dark);">
+        <span>Total</span><span id="cartTotal">0 RWF</span>
+      </div>
+      <div class="field"><label>Pay with</label>
+        <select id="payMethod"><option>MTN MoMo</option><option>Airtel Money</option></select>
+      </div>
+      <button class="btn btn-primary" style="width:100%;padding:13px;" onclick="checkout()">Confirm payment</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div class="view" id="view-admin">
+  <div class="wrap" style="padding-top:20px;">
+    <div class="section-head">
+      <div class="tag">Admin</div>
+      <h2>Platform overview</h2>
+    </div>
+    <div class="stat-row" style="margin-bottom:32px;">
+      <div class="stat-card"><div class="stat-num">18</div><div class="stat-label">girls enrolled</div></div>
+      <div class="stat-card"><div class="stat-num">3</div><div class="stat-label">active courses</div></div>
+      <div class="stat-card"><div class="stat-num">27</div><div class="stat-label">products listed</div></div>
+    </div>
+    <h4 style="margin-bottom:12px;">Recent learners</h4>
+    <table style="margin-bottom:28px;">
+      <tr><th>Name</th><th>Course</th><th>Progress</th><th>Status</th></tr>
+      <tr><td>Uwase Liliane</td><td>Tailoring</td><td>75%</td><td><span class="badge badge-amber">In progress</span></td></tr>
+      <tr><td>Mukamana Grace</td><td>Beading</td><td>100%</td><td><span class="badge badge-green">Graduated</span></td></tr>
+      <tr><td>Ingabire Divine</td><td>Basket weaving</td><td>40%</td><td><span class="badge badge-amber">In progress</span></td></tr>
+    </table>
+    <h4 style="margin-bottom:12px;">Courses</h4>
+    <table>
+      <tr><th>Course</th><th>Duration</th><th>Enrolled</th><th></th></tr>
+      <tr><td>Tailoring</td><td>6 weeks</td><td>9</td><td><span class="badge badge-gray">Manage</span></td></tr>
+      <tr><td>Beading</td><td>3 weeks</td><td>5</td><td><span class="badge badge-gray">Manage</span></td></tr>
+      <tr><td>Basket weaving</td><td>4 weeks</td><td>4</td><td><span class="badge badge-gray">Manage</span></td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="script.js"></script>
+</body>
+</html>
