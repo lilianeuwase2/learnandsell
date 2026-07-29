@@ -19,6 +19,7 @@
       <button class="btn btn-outline" id="profileBtn" style="display:none;" onclick="go('profile')">Profile</button>
       <button class="btn btn-navy" id="loginBtn" onclick="go('auth')">Log in</button>
       <button class="btn btn-outline" id="logoutBtn" style="display:none;" onclick="logout()">Log out</button>
+      <button class="nav-toggle" id="navToggle" onclick="toggleMobileNav()" aria-label="Open menu">☰</button>
     </div>
   </div>
 </div>
@@ -58,7 +59,7 @@
     </div>
   </div>
 
-  <div class="section" style="padding-top:0;">
+  <div class="section section-tint">
     <div class="wrap">
       <div class="section-head">
         <div class="tag">Craft tracks</div>
@@ -83,7 +84,7 @@
         <select id="regLanguage"><option>English</option><option>Kinyarwanda</option></select>
       </div>
       <p id="authError" style="color:#C0442D;font-size:13px;margin-bottom:10px;display:none;"></p>
-      <button class="btn btn-primary" style="width:100%;padding:13px;" onclick="loginAs()">Create account / Log in</button>
+      <button class="btn btn-primary btn-block" onclick="loginAs()">Create account / Log in</button>
       <p style="text-align:center;margin-top:14px;font-size:13px;">Forgot your password? <a href="#" style="color:var(--blue);font-weight:600;" onclick="go('forgot');return false;">Reset it</a></p>
     </div>
   </div>
@@ -96,7 +97,7 @@
       <h3 style="font-size:22px;margin-bottom:6px;">Reset your password</h3>
       <p style="margin-bottom:20px;">Enter the phone number or email you registered with. We'll send a reset link.</p>
       <div class="field"><label>Phone number or email</label><input type="text" id="resetContact" placeholder="+250 78 000 0000"></div>
-      <button class="btn btn-primary" style="width:100%;padding:13px;" onclick="sendResetLink()">Send reset link</button>
+      <button class="btn btn-primary btn-block" onclick="sendResetLink()">Send reset link</button>
       <p style="text-align:center;margin-top:14px;font-size:13px;"><a href="#" style="color:var(--blue);font-weight:600;" onclick="go('auth');return false;">Back to log in</a></p>
     </div>
   </div>
@@ -116,7 +117,7 @@
       <div class="field"><label>Preferred language</label>
         <select id="profileLanguage"><option>English</option><option>Kinyarwanda</option></select>
       </div>
-      <button class="btn btn-primary" style="width:100%;padding:13px;" onclick="saveProfile()">Save changes</button>
+      <button class="btn btn-primary btn-block" onclick="saveProfile()">Save changes</button>
     </div>
   </div>
 </div>
@@ -198,7 +199,7 @@
           <input type="text" id="shopMomoNumber" placeholder="078 000 0000">
         </div>
       </div>
-      <button class="btn btn-primary" style="width:100%;padding:13px;" onclick="createShop()">Open my shop</button>
+      <button class="btn btn-primary btn-block" onclick="createShop()">Open my shop</button>
     </div>
   </div>
 </div>
@@ -255,10 +256,10 @@
       <input type="text" id="marketSearch" placeholder="Search products..." oninput="renderMarket()">
     </div>
     <div style="display:flex;gap:10px;margin:14px 0 8px;flex-wrap:wrap;">
-      <button class="btn btn-outline" onclick="filterMarket('All')">All</button>
-      <button class="btn btn-outline" onclick="filterMarket('Tailoring')">Tailoring</button>
-      <button class="btn btn-outline" onclick="filterMarket('Beading')">Beading</button>
-      <button class="btn btn-outline" onclick="filterMarket('Basket weaving')">Basket weaving</button>
+      <button class="btn btn-primary mkt-filter" data-cat="All" onclick="filterMarket('All')">All</button>
+      <button class="btn btn-outline mkt-filter" data-cat="Tailoring" onclick="filterMarket('Tailoring')">Tailoring</button>
+      <button class="btn btn-outline mkt-filter" data-cat="Beading" onclick="filterMarket('Beading')">Beading</button>
+      <button class="btn btn-outline mkt-filter" data-cat="Basket weaving" onclick="filterMarket('Basket weaving')">Basket weaving</button>
     </div>
     <div style="display:flex;gap:10px;margin-bottom:24px;align-items:center;">
       <label style="font-size:13px;color:var(--muted);">Max price:</label>
@@ -281,15 +282,8 @@
       <div class="field"><label>Pay with</label>
         <select id="payMethod"><option>MTN MoMo</option><option>Airtel Money</option></select>
       </div>
-      <div class="field"><label>Mobile money number</label><input type="text" id="payNumber" placeholder="078 000 0000"></div>
-      <button class="btn btn-primary" id="checkoutBtn" style="width:100%;padding:13px;" onclick="checkout()">Start payment simulation</button>
-      <div id="paymentSimPanel" class="payment-sim" style="display:none;">
-        <p id="paymentSummary" class="payment-line"></p>
-        <p id="paymentStatus" class="payment-line"></p>
-        <p class="payment-line">Demo OTP: <strong id="demoOtp"></strong></p>
-        <div class="field" style="margin-top:10px;"><label>Enter OTP</label><input type="text" id="paymentOtp" placeholder="6-digit OTP"></div>
-        <button class="btn btn-navy" id="verifyPaymentBtn" style="width:100%;" onclick="verifyPaymentOtp()">Verify OTP and pay</button>
-      </div>
+      <div class="field"><label>Mobile money number</label><input type="text" id="payPhone" placeholder="078 000 0000"></div>
+      <button class="btn btn-primary btn-block" onclick="checkout()">Confirm payment</button>
     </div>
   </div>
 </div>
@@ -377,15 +371,15 @@
         <div class="field"><label>Description</label><textarea rows="2" id="cDesc"></textarea></div>
         <button class="btn btn-navy" onclick="addCourse()">Save course</button>
       </div>
-      <table id="adminCoursesTable"></table>
+      <div class="table-scroll"><table id="adminCoursesTable"></table></div>
     </div>
     <div id="admin-users" class="admin-pane" style="display:none;">
       <h4 style="margin-bottom:12px;">Registered users</h4>
-      <table id="adminUsersTable"></table>
+      <div class="table-scroll"><table id="adminUsersTable"></table></div>
     </div>
     <div id="admin-products" class="admin-pane" style="display:none;">
       <h4 style="margin-bottom:12px;">All marketplace products</h4>
-      <table id="adminProductsTable"></table>
+      <div class="table-scroll"><table id="adminProductsTable"></table></div>
     </div>
     <div id="admin-reports" class="admin-pane" style="display:none;">
       <h4 style="margin-bottom:12px;">Reports</h4>
@@ -405,6 +399,7 @@
 
 <div class="toast" id="toast"></div>
 
+<script src="config.js"></script>
 <script src="script.js"></script>
 </body>
 </html>
