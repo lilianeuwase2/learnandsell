@@ -1,4 +1,5 @@
 require('dotenv').config();
+const path = require('path');
 const express = require('express');
 const cors = require('cors');
 
@@ -64,6 +65,15 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/admin', adminRoutes);
+
+// serve the front end (index.html, script.js, styles.css, images/, videos/)
+const publicDir = path.join(__dirname, '..', 'public');
+app.use(express.static(publicDir));
+
+// any GET that isn't /api/... and isn't a static file falls back to index.html
+app.get(/^(?!\/api).*/, (req, res) => {
+  res.sendFile(path.join(publicDir, 'index.html'));
+});
 
 // centralized error handler — every route above can just `throw` or reject
 app.use((err, req, res, next) => {

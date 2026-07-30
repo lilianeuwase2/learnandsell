@@ -11,9 +11,9 @@ router.get('/', async (req, res) => {
   const quizzes = (await db.query('SELECT * FROM quizzes')).rows;
 
   const shaped = courses.map(c => ({
-    id: c.id, name: c.name, icon: c.icon, color: c.color,
+    id: c.id, name: c.name, icon: c.icon, image_url: c.image_url, color: c.color,
     duration: c.duration, description: c.description,
-    lessons: lessons.filter(l => l.course_id === c.id).map(l => ({ id: l.id, title: l.title })),
+    lessons: lessons.filter(l => l.course_id === c.id).map(l => ({ id: l.id, title: l.title, video_url: l.video_url })),
     quiz: (() => {
       const q = quizzes.find(q => q.course_id === c.id);
       // never leak the correct answer to the client
@@ -25,18 +25,22 @@ router.get('/', async (req, res) => {
 
 // POST /api/courses - admin only
 router.post('/', requireAuth, requireRole('admin'), async (req, res) => {
-  const { name, duration, description = '', icon = '🧶', color = 'pill-blue', lessons = [], quiz } = req.body;
+  const { name, duration, description = '', icon = '🧶', imageUrl = null, color = 'pill-blue', lessons = [], quiz } = req.body;
   if (!name || !duration) return res.status(400).json({ error: 'name and duration are required' });
 
   const result = await db.query(
-    `INSERT INTO courses (name, icon, color, duration, description) VALUES ($1,$2,$3,$4,$5) RETURNING *`,
-    [name, icon, color, duration, description]
+    `INSERT INTO courses (name, icon, image_url, color, duration, description) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *`,
+    [name, icon, imageUrl, color, duration, description]
   );
   const course = result.rows[0];
 
-  const lessonTitles = lessons.length ? lessons : ['Introduction', 'Core technique', 'Practice project', 'Finishing touches'];
-  for (let i = 0; i < lessonTitles.length; i++) {
-    await db.query('INSERT INTO lessons (course_id, title, order_index) VALUES ($1,$2,$3)', [course.id, lessonTitles[i], i]);
+  // lessons can be plain title strings, or {title, videoUrl} objects
+  const lessonList = lessons.length ? lessons : ['Introduction', 'Core technique', 'Practice project', 'Finishing touches'];
+  for (let i = 0; i < lessonList.length; i++) {
+    const l = lessonList[i];
+    const title = typeof l === 'string' ? l : l.title;
+    const videoUrl = typeof l === 'string' ? null : (l.videoUrl || null);
+    await db.query('INSERT INTO lessons (course_id, title, order_index, video_url) VALUES ($1,$2,$3,$4)', [course.id, title, i, videoUrl]);
   }
 
   const q = quiz || { question: 'Quick check', options: ['Follow the steps carefully', 'Skip steps to finish faster', 'Ignore instructions'], correct: 0 };

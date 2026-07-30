@@ -161,7 +161,7 @@
     <div class="dash-top">
       <div>
         <div class="tag" style="color:var(--mint-dark);font-weight:700;font-size:12px;">Your dashboard</div>
-        <h2 style="font-size:26px;" id="dashGreeting">Karibu</h2>
+        <h2 style="font-size:26px;" id="dashGreeting">Muraho</h2>
       </div>
     </div>
     <div class="grid-2">
@@ -221,6 +221,7 @@
         <div class="field"><label>Price (RWF)</label><input type="number" id="pPrice" placeholder="15000"></div>
       </div>
       <div class="field"><label>Description</label><textarea rows="2" id="pDesc" placeholder="Hand-sewn, made to size"></textarea></div>
+      <div class="field"><label>Photo path (in your project's images folder)</label><input type="text" id="pImage" placeholder="images/products/kitenge-dress.jpg"></div>
       <button class="btn btn-navy" id="pSaveBtn" onclick="addProduct()">Save product</button>
     </div>
     <div class="grid-3" id="myProductGrid"></div>
@@ -283,7 +284,14 @@
         <select id="payMethod"><option>MTN MoMo</option><option>Airtel Money</option></select>
       </div>
       <div class="field"><label>Mobile money number</label><input type="text" id="payPhone" placeholder="078 000 0000"></div>
-      <button class="btn btn-primary btn-block" onclick="checkout()">Confirm payment</button>
+      <button class="btn btn-primary btn-block" id="checkoutBtn" onclick="checkout()">Confirm payment</button>
+      <div id="paymentStatusPanel" style="display:none;margin-top:16px;padding:14px;border-radius:10px;background:var(--sky-deep);border:1px solid var(--sky-mid);">
+        <p id="paymentStatusText" style="font-size:14px;font-weight:600;color:var(--navy-dark);"></p>
+        <div id="paymentRetryArea" style="display:none;margin-top:10px;">
+          <div class="field" style="margin-bottom:10px;"><label>Try a different mobile money number</label><input type="text" id="retryPhone" placeholder="078 000 0000"></div>
+          <button class="btn btn-outline btn-block" onclick="retryPayment()">Retry payment</button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -399,7 +407,6 @@
 
 <div class="toast" id="toast"></div>
 
-<script src="config.js"></script>
 <script src="script.js"></script>
 </body>
 </html>

@@ -100,9 +100,6 @@ router.patch('/me', requireAuth, async (req, res) => {
 });
 
 // POST /api/auth/forgot-password
-// Simulated: no real email/SMS is sent (no mail provider wired up yet).
-// Real behaviour to add later: generate a signed, expiring reset token,
-// email/SMS it, and add a POST /auth/reset-password?token=... route.
 router.post('/forgot-password', async (req, res) => {
   const { contact } = req.body;
   if (!contact) return res.status(400).json({ error: 'contact is required' });
@@ -112,8 +109,6 @@ router.post('/forgot-password', async (req, res) => {
     await db.query('INSERT INTO notifications (user_id, text) VALUES ($1,$2)',
       [user.id, `Password reset link sent to ${contact} (simulated).`]);
   }
-  // Always respond success, whether or not the contact exists, so the
-  // endpoint can't be used to check which phone/emails are registered.
   res.json({ ok: true, message: `If an account exists for ${contact}, a reset link has been sent (simulated).` });
 });
 

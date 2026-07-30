@@ -26,6 +26,7 @@ CREATE TABLE courses (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
   icon TEXT NOT NULL DEFAULT '🧶',
+  image_url TEXT,                 -- e.g. 'images/courses/tailoring.jpg' (relative to the front-end root)
   color TEXT NOT NULL DEFAULT 'pill-blue',
   duration TEXT NOT NULL,
   description TEXT NOT NULL DEFAULT '',
@@ -36,7 +37,8 @@ CREATE TABLE lessons (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   course_id UUID NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
   title TEXT NOT NULL,
-  order_index INT NOT NULL
+  order_index INT NOT NULL,
+  video_url TEXT                  -- YouTube URL, OR a local/self-hosted .mp4 URL for offline download support
 );
 
 CREATE TABLE quizzes (
@@ -81,6 +83,7 @@ CREATE TABLE products (
   name TEXT NOT NULL,
   description TEXT NOT NULL DEFAULT '',
   category TEXT NOT NULL,
+  image_url TEXT,               -- e.g. 'images/products/xxxx.jpg' (relative to the front-end root)
   price_rwf INT NOT NULL CHECK (price_rwf >= 0),
   in_stock BOOLEAN NOT NULL DEFAULT true,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()

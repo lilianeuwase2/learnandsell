@@ -57,13 +57,13 @@ async function getOwnShopOrFail(userId) {
 router.post('/', requireAuth, requireRole('learner'), async (req, res) => {
   try {
     const shop = await getOwnShopOrFail(req.user.id);
-    const { name, price, description = '' } = req.body;
+    const { name, price, description = '', imageUrl = null } = req.body;
     if (!name || price === undefined) return res.status(400).json({ error: 'name and price are required' });
 
     const result = await db.query(
-      `INSERT INTO products (shop_id, name, description, category, price_rwf)
-       VALUES ($1,$2,$3,$4,$5) RETURNING *`,
-      [shop.id, name, description, shop.category, Math.round(Number(price))]
+      `INSERT INTO products (shop_id, name, description, category, image_url, price_rwf)
+       VALUES ($1,$2,$3,$4,$5,$6) RETURNING *`,
+      [shop.id, name, description, shop.category, imageUrl, Math.round(Number(price))]
     );
     await db.query('INSERT INTO notifications (user_id, text) VALUES ($1,$2)',
       [req.user.id, `Product "${name}" was listed in your shop.`]);
@@ -76,14 +76,15 @@ router.post('/', requireAuth, requireRole('learner'), async (req, res) => {
 // PUT /api/products/:id
 router.put('/:id', requireAuth, requireRole('learner'), async (req, res) => {
   const shop = await getOwnShopOrFail(req.user.id).catch(() => null);
-  const { name, price, description } = req.body;
+  const { name, price, description, imageUrl } = req.body;
   const result = await db.query(
     `UPDATE products SET
        name = COALESCE($1, name),
        price_rwf = COALESCE($2, price_rwf),
-       description = COALESCE($3, description)
-     WHERE id=$4 AND shop_id=$5 RETURNING *`,
-    [name, price !== undefined ? Math.round(Number(price)) : null, description, req.params.id, shop && shop.id]
+       description = COALESCE($3, description),
+       image_url = COALESCE($4, image_url)
+     WHERE id=$5 AND shop_id=$6 RETURNING *`,
+    [name, price !== undefined ? Math.round(Number(price)) : null, description, imageUrl, req.params.id, shop && shop.id]
   );
   if (!result.rows[0]) return res.status(404).json({ error: 'Product not found in your shop' });
   await db.query('INSERT INTO notifications (user_id, text) VALUES ($1,$2)',

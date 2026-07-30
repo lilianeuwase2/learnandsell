@@ -3,7 +3,7 @@
    Backend base URL is set in config.js (window.LEARN_AND_SELL_API_BASE).
    ============================================================ */
 
-const API_BASE = window.LEARN_AND_SELL_API_BASE || 'http://localhost:4000/api';
+const API_BASE = window.LEARN_AND_SELL_API_BASE || '/api';
 
 /* ---------- API HELPER ---------- */
 let authToken = localStorage.getItem('las_token') || null;
@@ -34,6 +34,7 @@ const NAV_ITEMS = [
   {id:'home', label:'Home', roles:['guest','learner','buyer','admin']},
   {id:'courses', label:'Courses', roles:['guest','learner']},
   {id:'marketplace', label:'Marketplace', roles:['guest','learner','buyer']},
+  {id:'cart', label:'Cart', roles:['buyer']},
   {id:'dashboard', label:'Dashboard', roles:['learner']},
   {id:'seller-orders', label:'Shop orders', roles:['learner']},
   {id:'my-orders', label:'My orders', roles:['buyer']},
@@ -61,6 +62,13 @@ function toast(msg){
   t.textContent = msg; t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'), 1900);
 }
+function cardMediaHTML(imageUrl, emojiFallback, altText){
+  if(imageUrl){
+    // if the image fails to load (bad path, not yet added), fall back to the emoji instead of a broken icon
+    return `<div class="card-media" style="padding:0;"><img src="${imageUrl}" alt="${altText||''}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.textContent='${emojiFallback}';this.parentElement.style.padding='';"></div>`;
+  }
+  return `<div class="card-media">${emojiFallback}</div>`;
+}
 function currentRole(){ return currentUser ? currentUser.role : 'guest'; }
 function getUnreadNotificationCount(){ return notifications.filter(n=>!n.read).length; }
 
@@ -73,6 +81,8 @@ function renderNav(){
     if(item.id === 'notifications'){
       const unread = getUnreadNotificationCount();
       a.textContent = unread ? `${item.label} (${unread})` : item.label;
+    } else if(item.id === 'cart'){
+      a.textContent = cart.length ? `${item.label} (${cart.length})` : item.label;
     } else {
       a.textContent = item.label;
     }
@@ -250,7 +260,7 @@ function renderHomeCourses(){
   homeCourses.innerHTML='';
   courses.forEach(c=>{
     homeCourses.innerHTML += `<div class="card">
-      <div class="card-media">${c.icon}</div>
+      ${cardMediaHTML(c.image_url, c.icon, c.name)}
       <div class="card-body">
         <span class="pill ${c.color}">${c.duration}</span>
         <h4>${c.name}</h4><p>${c.description}</p>
@@ -278,7 +288,7 @@ function renderCatalog(){
     const enrolled = !!enrollment;
     const graduated = !!(enrollment && enrollment.graduated_at);
     grid.innerHTML += `<div class="card">
-      <div class="card-media">${c.icon}</div>
+      ${cardMediaHTML(c.image_url, c.icon, c.name)}
       <div class="card-body">
         <span class="pill ${c.color}">${c.duration}</span>
         <h4>${c.name}</h4><p>${c.description}</p>
@@ -314,25 +324,33 @@ function openCourseDetail(id){
   go('course-detail');
 }
 
-/* ---------- OFFLINE VIDEO DOWNLOADS ----------
-   Real "download this lesson to watch offline" using the browser's Cache
-   Storage API — genuinely works, no backend needed, no service worker
-   required for this explicit-download pattern (only needed if you also
-   want *streaming* pages to work offline, not just saved videos).
-
-   DEMO_LESSON_VIDEO_URL is a placeholder: swap lessonVideoUrl() for a real
-   per-lesson URL (e.g. l.videoUrl from the API) once real lesson videos
-   are hosted. Using Blender Foundation's "Big Buck Bunny" (CC-BY 3.0) here
-   only because it's a small, freely-licensed file that's safe and reliable
-   to fetch for a demo — not real course content. */
+/* ---------- LESSON VIDEO PLAYBACK ----------
+   Each lesson can point at:
+   - a YouTube URL (youtube.com/watch?v=... or youtu.be/...) -> played via
+     embed iframe. YouTube does not allow fetching raw video bytes, so
+     offline download is not possible for these — the download button is
+     hidden automatically.
+   - a direct .mp4 URL (your own server, or a project asset) -> played via
+     <video>, and CAN be downloaded for offline use via the Cache API,
+     same as before. */
 const DEMO_LESSON_VIDEO_URL = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
 const OFFLINE_CACHE_NAME = 'las-offline-videos-v1';
 
 function lessonVideoUrl(courseId, lessonIndex){
-  return DEMO_LESSON_VIDEO_URL; // one shared demo file; replace per-lesson in production
+  const c = courses.find(x=>x.id===courseId);
+  const l = c && c.lessons[lessonIndex];
+  return (l && l.video_url) ? l.video_url : DEMO_LESSON_VIDEO_URL; // fall back to demo if not set yet
+}
+function getYouTubeEmbedUrl(url){
+  const m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([\w-]{6,})/);
+  return m ? `https://www.youtube.com/embed/${m[1]}` : null;
+}
+function isDownloadableVideo(url){
+  return !!url && !getYouTubeEmbedUrl(url); // only non-YouTube (direct file) URLs are downloadable
 }
 
 async function isLessonDownloaded(url){
+  if(!isDownloadableVideo(url)) return false; // YouTube links can never be "downloaded"
   if(!('caches' in window)) return false;
   const cache = await caches.open(OFFLINE_CACHE_NAME);
   return !!(await cache.match(url));
@@ -369,16 +387,23 @@ async function removeLessonDownload(courseId, lessonIndex){
 
 async function playLesson(courseId, lessonIndex, title){
   const url = lessonVideoUrl(courseId, lessonIndex);
+  const youtubeEmbed = getYouTubeEmbedUrl(url);
+
+  if(youtubeEmbed){
+    openVideoModal(title, null, false, youtubeEmbed);
+    return;
+  }
+
   let src = url, offline = false;
   if('caches' in window){
     const cache = await caches.open(OFFLINE_CACHE_NAME);
     const cached = await cache.match(url);
     if(cached){ src = URL.createObjectURL(await cached.blob()); offline = true; }
   }
-  openVideoModal(title, src, offline);
+  openVideoModal(title, src, offline, null);
 }
 
-function openVideoModal(title, src, offline){
+function openVideoModal(title, src, offline, youtubeEmbed){
   let modal = document.getElementById('videoModal');
   if(!modal){
     modal = document.createElement('div');
@@ -389,23 +414,32 @@ function openVideoModal(title, src, offline){
           <span id="videoModalTitle" style="font-weight:700;color:var(--navy-dark);"></span>
           <button class="video-modal-close" onclick="closeVideoModal()">✕</button>
         </div>
-        <video id="videoModalPlayer" controls autoplay style="width:100%;border-radius:10px;display:block;"></video>
+        <div id="videoModalMount"></div>
         <p id="videoModalBadge" style="font-size:12px;margin-top:8px;"></p>
       </div>`;
     document.body.appendChild(modal);
   }
   document.getElementById('videoModalTitle').textContent = title;
-  document.getElementById('videoModalPlayer').src = src;
-  document.getElementById('videoModalBadge').innerHTML = offline
-    ? '📥 Playing from your offline download — no data used.'
-    : '📶 Streaming — download this lesson to watch it offline next time.';
+  const mount = document.getElementById('videoModalMount');
+
+  if(youtubeEmbed){
+    mount.innerHTML = `<iframe src="${youtubeEmbed}" style="width:100%;aspect-ratio:16/9;border:0;border-radius:10px;display:block;" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+    document.getElementById('videoModalBadge').innerHTML = '📶 Streaming from YouTube — this lesson can\'t be downloaded for offline viewing.';
+  } else {
+    mount.innerHTML = `<video id="videoModalPlayer" controls autoplay style="width:100%;border-radius:10px;display:block;"></video>`;
+    document.getElementById('videoModalPlayer').src = src;
+    document.getElementById('videoModalBadge').innerHTML = offline
+      ? '📥 Playing from your offline download — no data used.'
+      : '📶 Streaming — download this lesson to watch it offline next time.';
+  }
   modal.classList.add('open');
 }
 function closeVideoModal(){
   const modal = document.getElementById('videoModal');
   if(!modal) return;
   const player = document.getElementById('videoModalPlayer');
-  player.pause(); player.removeAttribute('src'); player.load();
+  if(player){ player.pause(); player.removeAttribute('src'); player.load(); }
+  document.getElementById('videoModalMount').innerHTML = '';
   modal.classList.remove('open');
 }
 
@@ -436,7 +470,11 @@ async function renderLessons(c){
 
     const downloadBtn = document.createElement('button');
     downloadBtn.className = 'btn btn-outline';
-    if(downloaded){
+    if(!isDownloadableVideo(url)){
+      downloadBtn.textContent = '📶 Streaming only';
+      downloadBtn.disabled = true;
+      downloadBtn.style.opacity = '.5';
+    } else if(downloaded){
       downloadBtn.textContent = '🗑 Remove download';
       downloadBtn.onclick = () => removeLessonDownload(c.id, i);
     } else {
@@ -518,7 +556,7 @@ async function submitQuiz(){
 function renderDashboard(){
   const greeting = document.getElementById('dashGreeting');
   const firstName = currentUser ? currentUser.name.split(' ')[0] : 'there';
-  greeting.textContent = 'Karibu, '+firstName;
+  greeting.textContent = 'Muraho, '+firstName;
 
   const active = enrollments.find(e=>!e.quiz_passed) || enrollments[enrollments.length-1];
   if(active){
@@ -594,6 +632,7 @@ function toggleAddProduct(){
     document.getElementById('pName').value='';
     document.getElementById('pPrice').value='';
     document.getElementById('pDesc').value='';
+    document.getElementById('pImage').value='';
     document.getElementById('pSaveBtn').textContent = 'Save product';
   }
 }
@@ -602,14 +641,15 @@ async function addProduct(){
   const name = document.getElementById('pName').value.trim();
   const price = document.getElementById('pPrice').value;
   const description = document.getElementById('pDesc').value.trim();
+  const imageUrl = document.getElementById('pImage').value.trim();
   if(!name || !price){ toast('Add a name and price'); return; }
 
   try{
     if(editId){
-      await apiFetch(`/products/${editId}`, { method:'PUT', body:{ name, price, description } });
+      await apiFetch(`/products/${editId}`, { method:'PUT', body:{ name, price, description, imageUrl } });
       toast('Product updated');
     } else {
-      await apiFetch('/products', { method:'POST', body:{ name, price, description } });
+      await apiFetch('/products', { method:'POST', body:{ name, price, description, imageUrl } });
       toast('Product listed');
     }
     renderNav();
@@ -626,6 +666,7 @@ function editProduct(id){
   document.getElementById('pName').value = p.name;
   document.getElementById('pPrice').value = p.price_rwf;
   document.getElementById('pDesc').value = p.description;
+  document.getElementById('pImage').value = p.image_url || '';
   document.getElementById('pSaveBtn').textContent = 'Update product';
 }
 async function deleteProduct(id){
@@ -657,7 +698,7 @@ async function renderMyProducts(){
   }
   myProducts.forEach(p=>{
     grid.innerHTML += `<div class="card">
-      <div class="card-media">🧵</div>
+      ${cardMediaHTML(p.image_url, '🧵', p.name)}
       <div class="card-body">
         <span class="pill ${p.in_stock?'pill-mint':'pill-amber'}">${p.in_stock?'In stock':'Out of stock'}</span>
         <h4>${p.name}</h4><p>${p.description||'Handmade item'}</p>
@@ -755,7 +796,7 @@ async function renderMarket(){
     const avg = Number(p.avg_rating);
     const count = Number(p.review_count);
     grid.innerHTML += `<div class="card">
-      <div class="card-media">🧵</div>
+      ${cardMediaHTML(p.image_url, '🧵', p.name)}
       <div class="card-body">
         <span class="pill pill-blue">${p.category}</span>
         <h4>${p.name}</h4><p>${p.description}</p>
@@ -771,34 +812,111 @@ async function renderMarket(){
 function addToCart(productId, name, price){
   if(!currentUser || currentUser.role!=='buyer'){ toast('Log in as a buyer first'); go('auth'); return; }
   cart.push({productId, name, price});
-  toast(name+' added to cart');
+  renderNav();
+  toast(name+' added to cart — open Cart from the menu to check out');
 }
 function renderCart(){
+  if(!pendingPaymentOrderId){
+    const panel = document.getElementById('paymentStatusPanel');
+    if(panel) panel.style.display = 'none';
+    const btn = document.getElementById('checkoutBtn');
+    if(btn) btn.disabled = false;
+  }
   const wrap = document.getElementById('cartItems');
   wrap.innerHTML='';
   if(cart.length===0){
     wrap.innerHTML = '<p>Your cart is empty — visit the marketplace to add items.</p>';
   }
   let total=0;
-  cart.forEach(item=>{
+  cart.forEach((item,i)=>{
     total += item.price;
-    wrap.innerHTML += `<div class="cart-item"><span>${item.name}</span><span>${Number(item.price).toLocaleString()} RWF</span></div>`;
+    wrap.innerHTML += `<div class="cart-item"><span>${item.name}</span><span style="display:flex;align-items:center;gap:10px;">${Number(item.price).toLocaleString()} RWF<button class="mini-btn danger" onclick="removeFromCart(${i})">Remove</button></span></div>`;
   });
   document.getElementById('cartTotal').textContent = total.toLocaleString()+' RWF';
 }
+function removeFromCart(index){
+  cart.splice(index,1);
+  renderCart();
+  renderNav();
+}
+let pendingPaymentOrderId = null;
+
 async function checkout(){
   if(cart.length===0){ toast('Your cart is empty'); return; }
   const method = document.getElementById('payMethod').value;
   const phone = document.getElementById('payPhone').value.trim();
   if(!phone){ toast('Enter the mobile money number to pay from'); return; }
+  const checkoutBtn = document.getElementById('checkoutBtn');
+  checkoutBtn.disabled = true;
   try{
     const data = await apiFetch('/orders/checkout', { method:'POST', body:{ items: cart, method, phone } });
-    toast('Payment confirmed via '+method+' (simulated) — order #'+String(data.order.id).slice(0,8)+' placed');
-    cart = [];
-    renderCart();
-    renderNav();
-    await refreshNotifications();
-    go('my-orders');
+    pendingPaymentOrderId = data.order.id;
+    showPaymentStatus('pending', method);
+    await pollPaymentStatus(data.order.id, method);
+  }catch(err){
+    toast(err.message);
+    checkoutBtn.disabled = false;
+  }
+}
+
+function showPaymentStatus(status, method, reason){
+  const panel = document.getElementById('paymentStatusPanel');
+  const text = document.getElementById('paymentStatusText');
+  const retryArea = document.getElementById('paymentRetryArea');
+  panel.style.display = 'block';
+  if(status === 'pending'){
+    text.textContent = `📱 Waiting for approval on your phone via ${method}…`;
+    retryArea.style.display = 'none';
+  } else if(status === 'confirmed'){
+    text.textContent = `✅ Payment confirmed via ${method}.`;
+    retryArea.style.display = 'none';
+  } else if(status === 'failed'){
+    text.textContent = `⚠️ Payment failed${reason ? ': ' + reason : ''}. Try again with a valid number.`;
+    retryArea.style.display = 'block';
+  }
+}
+
+async function pollPaymentStatus(orderId, method){
+  const checkoutBtn = document.getElementById('checkoutBtn');
+  // poll roughly every second for up to ~15 seconds
+  for(let i=0;i<15;i++){
+    await new Promise(r=>setTimeout(r, 1000));
+    let data;
+    try{
+      data = await apiFetch(`/orders/${orderId}/payment`);
+    }catch(err){ continue; } // transient error, keep polling
+    if(data.payment.status === 'confirmed'){
+      showPaymentStatus('confirmed', method);
+      toast('Payment confirmed — order #'+String(orderId).slice(0,8)+' placed');
+      cart = [];
+      renderCart();
+      renderNav();
+      checkoutBtn.disabled = false;
+      await refreshNotifications();
+      setTimeout(()=>go('my-orders'), 1200);
+      return;
+    }
+    if(data.payment.status === 'failed'){
+      showPaymentStatus('failed', method, data.payment.failure_reason);
+      checkoutBtn.disabled = false;
+      return;
+    }
+    // still pending, keep polling
+  }
+  // gave up waiting
+  showPaymentStatus('failed', method, 'No confirmation received — check the number and try again');
+  checkoutBtn.disabled = false;
+}
+
+async function retryPayment(){
+  if(!pendingPaymentOrderId) return;
+  const phone = document.getElementById('retryPhone').value.trim();
+  if(!phone){ toast('Enter a mobile money number'); return; }
+  const method = document.getElementById('payMethod').value;
+  try{
+    await apiFetch(`/orders/${pendingPaymentOrderId}/payment/retry`, { method:'POST', body:{ phone } });
+    showPaymentStatus('pending', method);
+    await pollPaymentStatus(pendingPaymentOrderId, method);
   }catch(err){ toast(err.message); }
 }
 
