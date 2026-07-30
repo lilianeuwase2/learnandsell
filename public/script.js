@@ -1,7 +1,4 @@
-/* ============================================================
-   Learn and Sell — front end wired to the real backend API.
-   Backend base URL is set in config.js (window.LEARN_AND_SELL_API_BASE).
-   ============================================================ */
+
 
 const API_BASE = window.LEARN_AND_SELL_API_BASE || '/api';
 
@@ -324,33 +321,25 @@ function openCourseDetail(id){
   go('course-detail');
 }
 
-/* ---------- LESSON VIDEO PLAYBACK ----------
-   Each lesson can point at:
-   - a YouTube URL (youtube.com/watch?v=... or youtu.be/...) -> played via
-     embed iframe. YouTube does not allow fetching raw video bytes, so
-     offline download is not possible for these — the download button is
-     hidden automatically.
-   - a direct .mp4 URL (your own server, or a project asset) -> played via
-     <video>, and CAN be downloaded for offline use via the Cache API,
-     same as before. */
+
 const DEMO_LESSON_VIDEO_URL = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
 const OFFLINE_CACHE_NAME = 'las-offline-videos-v1';
 
 function lessonVideoUrl(courseId, lessonIndex){
   const c = courses.find(x=>x.id===courseId);
   const l = c && c.lessons[lessonIndex];
-  return (l && l.video_url) ? l.video_url : DEMO_LESSON_VIDEO_URL; // fall back to demo if not set yet
+  return (l && l.video_url) ? l.video_url : DEMO_LESSON_VIDEO_URL; 
 }
 function getYouTubeEmbedUrl(url){
   const m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([\w-]{6,})/);
   return m ? `https://www.youtube.com/embed/${m[1]}` : null;
 }
 function isDownloadableVideo(url){
-  return !!url && !getYouTubeEmbedUrl(url); // only non-YouTube (direct file) URLs are downloadable
+  return !!url && !getYouTubeEmbedUrl(url); 
 }
 
 async function isLessonDownloaded(url){
-  if(!isDownloadableVideo(url)) return false; // YouTube links can never be "downloaded"
+  if(!isDownloadableVideo(url)) return false;
   if(!('caches' in window)) return false;
   const cache = await caches.open(OFFLINE_CACHE_NAME);
   return !!(await cache.match(url));
@@ -424,13 +413,13 @@ function openVideoModal(title, src, offline, youtubeEmbed){
 
   if(youtubeEmbed){
     mount.innerHTML = `<iframe src="${youtubeEmbed}" style="width:100%;aspect-ratio:16/9;border:0;border-radius:10px;display:block;" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
-    document.getElementById('videoModalBadge').innerHTML = '📶 Streaming from YouTube — this lesson can\'t be downloaded for offline viewing.';
+    document.getElementById('videoModalBadge').innerHTML = 'Streaming from YouTube — this lesson can\'t be downloaded for offline viewing.';
   } else {
     mount.innerHTML = `<video id="videoModalPlayer" controls autoplay style="width:100%;border-radius:10px;display:block;"></video>`;
     document.getElementById('videoModalPlayer').src = src;
     document.getElementById('videoModalBadge').innerHTML = offline
-      ? '📥 Playing from your offline download — no data used.'
-      : '📶 Streaming — download this lesson to watch it offline next time.';
+      ? ' Playing from your offline download — no data used.'
+      : ' Streaming — download this lesson to watch it offline next time.';
   }
   modal.classList.add('open');
 }
@@ -464,18 +453,18 @@ async function renderLessons(c){
 
     const playBtn = document.createElement('button');
     playBtn.className = 'btn btn-outline';
-    playBtn.textContent = '▶ Play';
+    playBtn.textContent = 'Play';
     playBtn.onclick = () => playLesson(c.id, i, l.title);
     actions.appendChild(playBtn);
 
     const downloadBtn = document.createElement('button');
     downloadBtn.className = 'btn btn-outline';
     if(!isDownloadableVideo(url)){
-      downloadBtn.textContent = '📶 Streaming only';
+      downloadBtn.textContent = ' Streaming only';
       downloadBtn.disabled = true;
       downloadBtn.style.opacity = '.5';
     } else if(downloaded){
-      downloadBtn.textContent = '🗑 Remove download';
+      downloadBtn.textContent = 'Remove download';
       downloadBtn.onclick = () => removeLessonDownload(c.id, i);
     } else {
       downloadBtn.textContent = '⬇ Download';
@@ -868,10 +857,10 @@ function showPaymentStatus(status, method, reason){
     text.textContent = `📱 Waiting for approval on your phone via ${method}…`;
     retryArea.style.display = 'none';
   } else if(status === 'confirmed'){
-    text.textContent = `✅ Payment confirmed via ${method}.`;
+    text.textContent = `Payment confirmed via ${method}.`;
     retryArea.style.display = 'none';
   } else if(status === 'failed'){
-    text.textContent = `⚠️ Payment failed${reason ? ': ' + reason : ''}. Try again with a valid number.`;
+    text.textContent = ` Payment failed${reason ? ': ' + reason : ''}. Try again with a valid number.`;
     retryArea.style.display = 'block';
   }
 }

@@ -28,12 +28,7 @@ INSERT INTO quizzes (course_id, question, options, correct_index) VALUES
   ('33333333-3333-3333-3333-333333333333', 'Why soak fibre before weaving?',
    '["To make it more flexible and less likely to crack","To change its colour","It is optional and rarely done"]', 0);
 
--- Demo admin account: contact "admin@learnandsell.rw", password "admin1234"
--- (password_hash generated with bcrypt below at seed-time by the app instead;
---  see src/scripts/createAdmin.js for a scripted way to add this safely.)
 
--- Demo seller (graduated + shop + products) so the marketplace isn't empty
--- on first run. Login: contact "demo.seller@learnandsell.rw", password "demo1234"
 INSERT INTO users (id, name, contact, password_hash, role, language, active)
 VALUES ('99999999-9999-9999-9999-999999999999','Demo Sellers','demo.seller@learnandsell.rw',
   '$2a$10$dWq8qMyHhcd5qN.EckkQX.J9caDdEXZyKDaZJtOv.mEija4FWgftG','learner','English', true);
