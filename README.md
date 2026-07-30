@@ -102,7 +102,7 @@ URL for each file. Only the resulting URLs are stored in the database:
 ## 5. Offline lesson downloads
 
 Each lesson can be downloaded for offline viewing via the browser's Cache
-Storage API (`script.js` → `downloadLessonForOffline` /
+Storage API (`script.js` `downloadLessonForOffline` /
 `isLessonDownloaded` / `removeLessonDownload`).
 
 ## 6. Payment simulation
