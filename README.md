@@ -49,10 +49,6 @@ learn-and-sell/
             └── admin.js
 ```
 
-The front end and API are **one deployable service**: `src/index.js` serves
-everything in `public/` as static files, and any non-`/api` route falls back
-to `index.html`. `script.js` calls the API at a relative `/api` path — no
-separate front-end host, no CORS setup needed.
 
 ## 2. Prerequisites
 
@@ -123,16 +119,12 @@ later without touching anything else:
    `confirmed` after ~2.5 seconds, simulating the subscriber approving the
    prompt on their phone.
 3. The front end polls `GET /api/orders/:id/payment` every second and shows
-   a live "waiting for approval on your phone…" → "Payment confirmed" state.
+   a live "waiting for approval on your phone…" , "Payment confirmed" state.
 4. `POST /api/orders/:id/payment/retry` lets a buyer fix a bad number and
-   retry without re-placing the order.
+   retry without replacing the order.
 5. A seller **cannot** advance an order to "shipped" until its payment is
    `confirmed` (`PATCH /api/orders/:id/advance` returns `409` otherwise) —
    payment genuinely gates fulfilment.
-
-Swapping in a real MTN MoMo / Airtel Money API later means replacing the
-`setTimeout` in `src/routes/orders.js` with a real request-to-pay call plus
-a webhook route — nothing else in the app needs to change.
 
 ## 7. API overview
 
@@ -146,7 +138,7 @@ return `403` with a clear message if the wrong role is used.
 | Courses | `GET /courses` *(public)*, `POST /courses` (admin), `DELETE /courses/:id` (admin) |
 | Enrollment | `GET /enrollments/me`, `POST /enrollments`, `POST /enrollments/:courseId/lessons/complete`, `POST /enrollments/:courseId/quiz` |
 | Shop | `GET /shops/me`, `POST /shops`, `GET /shops/me/earnings`, `POST /shops/me/payout` |
-| Products | `GET /products` *(public — marketplace, filters: `category`, `search`, `maxPrice`)*, `GET /products/mine`, `POST /products`, `PUT /products/:id`, `PATCH /products/:id/stock`, `DELETE /products/:id` |
+| Products | `GET /products` *( `category`, `search`, `maxPrice`)*, `GET /products/mine`, `POST /products`, `PUT /products/:id`, `PATCH /products/:id/stock`, `DELETE /products/:id` |
 | Orders | `POST /orders/checkout`, `GET /orders/:id/payment`, `POST /orders/:id/payment/retry`, `GET /orders/mine` (buyer), `GET /orders/seller`, `PATCH /orders/:id/advance` |
 | Reviews | `POST /reviews`, `GET /reviews/mine`, `GET /reviews?productName=` *(public)* |
 | Notifications | `GET /notifications`, `PATCH /notifications/read-all` |
@@ -161,7 +153,4 @@ return `403` with a clear message if the wrong role is used.
   orders, leaves reviews.
 - **Admin**: manages courses, suspends/reactivates users, removes
   marketplace listings, views platform-wide reports.
-
-Registration accepts any of the three roles directly (no separate admin
-provisioning script needed for a demo/grading context).
 
