@@ -26,7 +26,7 @@ CREATE TABLE courses (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
   icon TEXT NOT NULL DEFAULT '🧶',
-  image_url TEXT,                 -- e.g. 'images/courses/tailoring.jpg' (relative to the front-end root)
+  image_url TEXT,                
   color TEXT NOT NULL DEFAULT 'pill-blue',
   duration TEXT NOT NULL,
   description TEXT NOT NULL DEFAULT '',
@@ -38,14 +38,14 @@ CREATE TABLE lessons (
   course_id UUID NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
   title TEXT NOT NULL,
   order_index INT NOT NULL,
-  video_url TEXT                  -- YouTube URL, OR a local/self-hosted .mp4 URL for offline download support
+  video_url TEXT                
 );
 
 CREATE TABLE quizzes (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   course_id UUID NOT NULL UNIQUE REFERENCES courses(id) ON DELETE CASCADE,
   question TEXT NOT NULL,
-  options JSONB NOT NULL,      -- ["option a", "option b", "option c"]
+  options JSONB NOT NULL,   
   correct_index INT NOT NULL
 );
 
@@ -61,9 +61,6 @@ CREATE TABLE enrollments (
   UNIQUE(user_id, course_id)
 );
 
--- a learner may only be *actively* mid-course in one course at a time;
--- enforced in the application layer (see routes/enrollments.js) since it
--- depends on quiz_passed / graduated_at state, not just a static constraint.
 
 -- ---------- SHOPS / PRODUCTS ----------
 CREATE TABLE shops (
@@ -83,7 +80,7 @@ CREATE TABLE products (
   name TEXT NOT NULL,
   description TEXT NOT NULL DEFAULT '',
   category TEXT NOT NULL,
-  image_url TEXT,               -- e.g. 'images/products/xxxx.jpg' (relative to the front-end root)
+  image_url TEXT,              
   price_rwf INT NOT NULL CHECK (price_rwf >= 0),
   in_stock BOOLEAN NOT NULL DEFAULT true,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -102,7 +99,7 @@ CREATE TABLE order_items (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   order_id UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
   product_id UUID REFERENCES products(id) ON DELETE SET NULL,
-  name_snapshot TEXT NOT NULL,     -- product name at time of purchase
+  name_snapshot TEXT NOT NULL,     
   price_rwf INT NOT NULL
 );
 
