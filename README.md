@@ -12,82 +12,80 @@ MTN MoMo / Airtel Money payment is **simulated**
 ## 1. Project structure
 
 ```
-learn-and-sell/
+learnandsell/
 ├── README.md
 ├── .gitignore
-└── backend/
-    ├── .env.example
-    ├── package.json
-    ├── package-lock.json
-    ├── db/
-    │   ├── schema.sql          
-    │   └── seed.sql            
-    ├── public/                 
-    │   ├── index.html
-    │   ├── script.js
-    │   ├── styles.css
-    │   ├── images/
-    │   │   ├── courses/        
-    │   │   └── products/       
-    │   └── videos/            
-    │                            
-    │                          
-    └── src/
-        ├── db.js                
-        ├── index.js             
-        ├── middleware/
-        │   └── auth.js           
-        └── routes/
-            ├── auth.js
-            ├── courses.js
-            ├── enrollments.js
-            ├── shops.js
-            ├── products.js
-            ├── orders.js
-            ├── reviews.js
-            ├── notifications.js
-            └── admin.js
-```
+├── .env.example
+├── package.json
+├── package-lock.json
+├── db
+│   ├── schema.sql
+│   └── seed.sql
+├── public
+│   ├── index.html
+│   ├── script.js
+│   └── styles.css
+└── src
+    ├── db.js
+    ├── index.js
+    ├── middleware
+    │   └── auth.js
+    └── routes
+        ├── admin.js
+        ├── auth.js
+        ├── courses.js
+        ├── enrollments.js
+        ├── notifications.js
+        ├── orders.js
+        ├── products.js
+        ├── reviews.js
+        └── shops.js
+
 
 
 ## 2. Prerequisites
 
 - Node.js 18+
-- PostgreSQL 14+ (local install, or a hosted instance like Render's)
+- PostgreSQL 14+ ( locally or a hosted instance for example Render's which is what is used in the live demp)
 
 ## 3. Local setup
 
-First, clone the repository and navigate into the backend directory:
+***Step1
+- Clone the repository and install dependencies
+
 ```bash
 git clone https://github.com/lilianeuwase2/learnandsell.git
-cd learn-and-sell/backend
+cd learnandsell/backend
 npm install
+```
 
 
-Create a new file name a .env in the backend directory and add the following configuration 
+***Step 2 
+- Create a new file named a .env in the backend directory and add the following configuration 
 ```bash
 PORT=4000
 DATABASE_URL=postgresql://postgres:<your_local_password>@localhost:5432/learn_and_sell
 JWT_SECRET=change_this_to_a_long_random_string
 JWT_EXPIRES_IN=7d
 ```
-
-Ensure that the postgreSQL service is running then create the database and load the schema and demo data:
+***Step 3
+- Create the database and load the schema and demo data (make sure that PostgreSQL service is running first )
 ```bash
+
 createdb learn_and_sell
 psql -U postgres -d learn_and_sell -f db/schema.sql
 psql -U postgres -d learn_and_sell -f db/seed.sql
 ```
-
-Run the application :
+***Step 4 
+- Run the aplication
 ```bash
 npm run dev    
 # or
 npm start
 ```
-
-Open **http://localhost:4000** — front end and API are both served from
-here. `GET /api/health` confirms the API is up.
+***Step 5 
+- Open **http://localhost:4000** 
+- Visit  http://localhost:4000/api/health to confirm that the API is up 
 
 
 ## 4. Media hosting
@@ -153,4 +151,5 @@ return `403` with a clear message if the wrong role is used.
   orders, leaves reviews.
 - **Admin**: manages courses, suspends/reactivates users, removes
   marketplace listings, views platform-wide reports.
+
 
