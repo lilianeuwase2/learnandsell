@@ -67,7 +67,7 @@ npm install
 Create a new file name a .env in the backend directory and add the following configuration 
 ```bash
 PORT=4000
-DATABASE_URL=postgresql://learn_and_sell_db_user:1nDcJnVZhKOLmB9JirkxGWA1wdwJqYpg@dpg-d9ll3agae00c73akugig-a.oregon-postgres.render.com/learn_and_sell_db
+DATABASE_URL=postgresql://postgres:<your_local_password>@localhost:5432/learn_and_sell
 JWT_SECRET=change_this_to_a_long_random_string
 JWT_EXPIRES_IN=7d
 ```
